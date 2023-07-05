@@ -1,49 +1,35 @@
-import express, { Router } from 'express'
-import { Request, Response, Application } from 'express'
-import { AppRouters } from './routes/appRouter'
-import userRouter from './routes/user'
-import taskRouter from "./routes/task"
-const app: Application = express()
+import express, { Express, Request, Response } from 'express';
+import { AppRouters } from './routes/appRouter';
 
-app.use(express.json())
-app.use(userRouter)
-app.use(taskRouter)
-app.get('/', (req: Request, res: Response) => {
-    res.send('Test')
-})
+class App {
+    private app: Express;
+    private routes: AppRouters[]
+    constructor(routes: AppRouters[]) {
+        this.app = express();
+        this.routes = routes
+        this.initializeMiddlewares();
+        this.initializeRoutes();
 
-export default app
+    }
 
-// export class App {
-//     private app: Application
-//     port: any
-//     routers: Router[]
+    private initializeMiddlewares() {
+        this.app.use(express.json());
+    }
 
-//     constructor(routers: Router[], port: any) {
-//         this.app = express()
-//         this.routers = routers
-//         this.port = port
-//         this.init()
-//     }
+    private initializeRoutes() {
+        this.routes.forEach((route: AppRouters) => this.app.use(route.registerRoutes()))
+        this.app.get('/', this.handleRootRequest);
+    }
 
-//     private init() {
-//         this.middlewaresSetup()
-//         this.routesSetup()
-//     }
+    private handleRootRequest(req: Request, res: Response) {
+        res.send('Test');
+    }
 
-//     private middlewaresSetup(): void {
-//         this.routers.forEach((router: Router) => this.app.use(router))
-//     }
+    public start(port: string | number) {
+        this.app.listen(port, () => {
+            console.log(`Server started on port ${port}`);
+        });
+    }
+}
 
-//     private routesSetup() {
-//         this.app.use(express.json())
-//     }
-
-//     public start() {
-//         this.app.listen(this.port, () => {
-//             console.log('Server is up on port', this.port)
-//         }).on('error', (e: Error) => {
-//             console.log('Error while starting the server: ', e.message)
-//         })
-//     }
-// }
+export default App
