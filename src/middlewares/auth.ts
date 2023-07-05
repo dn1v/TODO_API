@@ -4,7 +4,7 @@ import prisma from '../db/database'
 import { UserValidationReturn } from '../interfaces/userValidationReturn.interface'
 import { Request, Response, NextFunction } from 'express'
 import { DecodedToken } from '../interfaces/decodedToken.interface'
-import { env } from 'process'
+
 export const hashPassword = async (password: string): Promise<string> => {
     const hashed = await bcrypt.hash(password, 10)
     return hashed
