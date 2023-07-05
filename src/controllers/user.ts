@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { User } from "../interfaces/user.interface";
 import { generateToken, hashPassword, validateUser } from "../middlewares/auth";
 
-export const createUser = async (req: Request, res: Response): Promise<Response | void> => {
+export const createUser = async (req: Request, res: Response): Promise<Response | void>=> {
     const data: User = {
         ...req.body
     }
