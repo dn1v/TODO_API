@@ -1,10 +1,10 @@
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+import jwt, { Secret } from 'jsonwebtoken'
 import prisma from '../db/database'
 import { UserValidationReturn } from '../interfaces/userValidationReturn.interface'
 import { Request, Response, NextFunction } from 'express'
 import { DecodedToken } from '../interfaces/decodedToken.interface'
-
+import { env } from 'process'
 export const hashPassword = async (password: string): Promise<string> => {
     const hashed = await bcrypt.hash(password, 10)
     return hashed
@@ -36,7 +36,7 @@ export const validateUser = async (email: string, password: string): Promise<Use
 }
 
 export const generateToken = async (_id: string) => {
-    return await jwt.sign({ _id }, 'tajnistring')
+    return await jwt.sign({ _id }, process.env.JWT_SECRET as Secret)
 }
 
 
@@ -45,7 +45,7 @@ export const authUser = async (req: Request, res: Response, next: NextFunction) 
         const token = req.headers.authorization?.replace('Bearer ', '')
         console.log(token)
         if (token === undefined) throw new Error('Token not provided.')
-        const decoded = await jwt.verify(token, 'tajnistring') as DecodedToken
+        const decoded = await jwt.verify(token, process.env.JWT_SECRET as Secret) as DecodedToken
         if (!decoded) throw new Error('Invalid token.')
         const user = await prisma.user.findUnique({
             where: {
