@@ -4,6 +4,7 @@ import prisma from '../db/database'
 import { UserValidationReturn } from '../interfaces/userValidationReturn.interface'
 import { Request, Response, NextFunction } from 'express'
 import { DecodedToken } from '../interfaces/decodedToken.interface'
+import { UserNonSensitiveData } from '../interfaces/noSensitiveData.interface'
 
 export class AuthUtils {
 
@@ -33,13 +34,14 @@ export class AuthUtils {
                 tokens: [...user.tokens, token]
             }
         })
-        return { user: updatedUser, token }
+        const withoutSensitveData: UserNonSensitiveData = new UserNonSensitiveData(updatedUser)
+        return { user: withoutSensitveData, token }
     }
-    
+
     static async generateToken(_id: string) {
         return await jwt.sign({ _id }, process.env.JWT_SECRET as Secret)
     }
-    
+
     static async authUser(req: Request, res: Response, next: NextFunction) {
         try {
             const token = req.headers.authorization?.replace('Bearer ', '')
@@ -51,14 +53,16 @@ export class AuthUtils {
                 where: {
                     id: decoded._id,
                 }
+
             })
             if (!user?.tokens.includes(token)) throw new Error('Token is not valid anymore.')
-            req.user = user !== null ? user : undefined
+            const withoutSensitveData: UserNonSensitiveData = new UserNonSensitiveData(user)
+            req.user = user !== null ? withoutSensitveData : undefined
             req.token = token
             next()
         } catch (error) {
-            if (error instanceof Error) return res.status(401).send({error: error.message}) 
-            res.status(500).send({error: "An unknown error occurred."})
+            if (error instanceof Error) return res.status(401).send({ error: error.message })
+            res.status(500).send({ error: "An unknown error occurred." })
         }
     }
 }

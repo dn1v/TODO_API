@@ -1,14 +1,14 @@
 import prisma from "../db/database";
 import { Request, Response } from "express";
 import { User } from "../interfaces/user.interface";
-//import { generateToken, hashPassword, validateUser } from "../middlewares/auth";
 import { AuthUtils } from "../middlewares/auth";
+import { UserNonSensitiveData } from "../interfaces/noSensitiveData.interface";
 
 export class UserController {
 
     async createUser(req: Request, res: Response): Promise<Response | void> {
         const data: User = {
-            ...req.body
+            ...req.body,
         }
         data.password = await AuthUtils.hashPassword(data.password)
         try {
@@ -19,7 +19,14 @@ export class UserController {
             })
             if (checkUser) return res.status(400).send({ error: "User with the provided email already exists." })
             const user = await prisma.user.create({ data })
-            res.status(201).send({ user })
+            const token = await AuthUtils.generateToken(user.id)
+            const userWithToken = await prisma.user.update({
+                where: { id: user.id },
+                data: { tokens: [...user.tokens, token] }
+            })
+
+            const withoutSensitveData: UserNonSensitiveData = new UserNonSensitiveData(userWithToken)
+            res.status(201).send({ user: withoutSensitveData, token })
         } catch (e) {
             res.status(500).send(e)
         }
@@ -30,7 +37,7 @@ export class UserController {
             const userToValidate = await AuthUtils.validateUser(req.body.email, req.body.password)
             if (!userToValidate) return res.status(400).send({ error: "Either email or password incorrect." });
             const { user, token } = userToValidate
-    
+
             res.send({ user, token })
         } catch (e) {
             res.status(500).send(e)
@@ -53,7 +60,7 @@ export class UserController {
             res.status(500).send(e)
         }
     }
-    
+
     async logoutAll(req: Request, res: Response): Promise<Response | void> {
         try {
             const user = await prisma.user.update({
@@ -69,7 +76,7 @@ export class UserController {
             res.status(500).send(e)
         }
     }
-    
+
     async getUsers(req: Request, res: Response): Promise<Response | void> {
         try {
             if (!req.user) return res.status(404).send()
@@ -78,7 +85,7 @@ export class UserController {
             res.status(500).send(e)
         }
     }
-    
+
     async getUser(req: Request, res: Response): Promise<Response | void> {
         try {
             const user = await prisma.user.findUnique({
@@ -92,7 +99,7 @@ export class UserController {
             res.status(500).send(e)
         }
     }
-    
+
     async editUsers(req: Request, res: Response): Promise<Response | void> {
         const updates: string[] = Object.keys(req.body)
         const allowedUpdates: string[] = ['firstName', 'lastName', 'password', 'email']
@@ -118,7 +125,7 @@ export class UserController {
             res.status(500).send(e)
         }
     }
-    
+
     async deleteUser(req: Request, res: Response): Promise<Response | void> {
         if (!req.params.id) return res.status(400).send({ error: 'User ID not provided.' })
         try {

@@ -1,6 +1,7 @@
 import { User } from "@prisma/client"
+import { UserNonSensitiveData } from "./noSensitiveData.interface"
 
 export interface UserValidationReturn {
-    user: User,
+    user: UserNonSensitiveData,
     token: string
 }
