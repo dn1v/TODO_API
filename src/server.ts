@@ -2,8 +2,10 @@ import express, { Express, Request, Response } from 'express';
 import { AppRouters } from './routes/appRouter';
 
 class App {
+
     private app: Express;
     private routes: AppRouters[]
+    
     constructor(routes: AppRouters[]) {
         this.app = express();
         this.routes = routes
