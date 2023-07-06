@@ -1,7 +1,8 @@
 import prisma from "../db/database";
 import { Request, Response } from "express";
 import { User } from "../interfaces/user.interface";
-import { generateToken, hashPassword, validateUser } from "../middlewares/auth";
+//import { generateToken, hashPassword, validateUser } from "../middlewares/auth";
+import { AuthUtils } from "../middlewares/auth";
 
 export class UserController {
 
@@ -9,7 +10,7 @@ export class UserController {
         const data: User = {
             ...req.body
         }
-        data.password = await hashPassword(data.password)
+        data.password = await AuthUtils.hashPassword(data.password)
         try {
             const checkUser = await prisma.user.findUnique({
                 where: {
@@ -26,7 +27,7 @@ export class UserController {
 
     async login(req: Request, res: Response): Promise<Response | void> {
         try {
-            const userToValidate = await validateUser(req.body.email, req.body.password)
+            const userToValidate = await AuthUtils.validateUser(req.body.email, req.body.password)
             if (!userToValidate) return res.status(400).send({ error: "Either email or password incorrect." });
             const { user, token } = userToValidate
     
@@ -100,7 +101,7 @@ export class UserController {
         try {
             if (!req.user) return res.status(404).send()
             if (req.body.password) {
-                const hashedPassword = await hashPassword(req.body.password)
+                const hashedPassword = await AuthUtils.hashPassword(req.body.password)
                 req.body.password = hashedPassword
             }
             const updatedUser = await prisma.user.update({
