@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express';
+import express, { Express, NextFunction, Request, Response } from 'express';
 import { AppRouters } from './routes/appRouter';
 
 class App {
@@ -16,6 +16,12 @@ class App {
 
     private initializeMiddlewares() {
         this.app.use(express.json());
+        this.app.use(function(req: Request, res: Response, next: NextFunction) {
+            res.header("Access-Control-Allow-Origin", process.env.CORS_URL);
+            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+            res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+            next();
+         })
     }
 
     private initializeRoutes() {

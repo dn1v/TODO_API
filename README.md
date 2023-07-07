@@ -24,8 +24,10 @@ This is a simple Todo API built with Node.js, Express.js, and Prisma.
 Create a `.env` file in the root directory of the project and add the following variables:
 
 ```plaintext
+PORT=port_number
 DATABASE_URL=your_database_url_here
 JWT_SECRET=your_jwt_secret_here
+CORS_URL=url
 ```
 
 ### Database Setup
