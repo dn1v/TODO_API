@@ -24,15 +24,11 @@ export class TaskController {
         const { sort, where } = filterAndSortParams(req)
         const { take, skip } = pagination(req)
         try {
-            const tasks = await prisma.task.findMany({
-                where,
-                orderBy: sort,
-                skip,
-                take
-            })
-            if (tasks.length === 0) return res.status(404).send()
+            const tasks = req.tasks
+           // if (tasks.length === 0) return res.status(404).send()
             res.send({ tasks })
         } catch (e) {
+            console.log(e)
             res.status(500).send(e)
         }
     }

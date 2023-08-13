@@ -52,13 +52,17 @@ export class AuthUtils {
             const user = await prisma.user.findUnique({
                 where: {
                     id: decoded._id,
+                },
+                include: {
+                    tasks: true
                 }
-
             })
+            const tasks = user?.tasks
             if (!user?.tokens.includes(token)) throw new Error('Token is not valid anymore.')
             const withoutSensitveData: UserNonSensitiveData = new UserNonSensitiveData(user)
             req.user = user !== null ? withoutSensitveData : undefined
             req.token = token
+            req.tasks = tasks
             next()
         } catch (error) {
             if (error instanceof Error) return res.status(401).send({ error: error.message })
